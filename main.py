@@ -7,17 +7,8 @@ BOT_TOKEN = ''
 
 ATTEMPTS = 5
 
-users = {
+users = {}
 
-}
-
-user_data = {
-    'in_game':False,
-    'atempts':None,
-    'number':None,
-    'amount_games':0,
-    'wins':0
-}
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -32,7 +23,7 @@ async def process_start(message:Message):
     if user_id not in users:
          users[user_id] ={
               'in_game':False,
-              'atempts':None,
+              'attempts':None,
               'number':None,
               'amount_games':0,
               'wins':0
@@ -56,7 +47,7 @@ async def process_play(message:Message):
     user_id:int = user.id  # type: ignore
     if not users[user_id]['in_game']:
           users[user_id]['in_game'] = True
-          users[user_id]['atempts'] = ATTEMPTS
+          users[user_id]['attempts'] = ATTEMPTS
           users[user_id]['number'] = generate_number()
 
           await message.answer(f'Game started you have {ATTEMPTS} attemps')
@@ -69,7 +60,7 @@ async def process_cancel(message:Message):
     user_id:int = user.id  # type: ignore
     if users[user_id]['in_game']:
          users[user_id]['in_game'] = False
-         users[user_id]['atempts'] = None
+         users[user_id]['attempts'] = None
          users[user_id]['amount_games']+=1
          await message.answer('You stoped the game')
     else:
@@ -84,21 +75,21 @@ async def procces_number(message:Message):
      if users[user_id]['in_game']:
           if number == users[user_id]['number']:
                users[user_id]['in_game'] = False
-               users[user_id]['atempts'] = None
+               users[user_id]['attempts'] = None
                users[user_id]['wins'] +=1
                users[user_id]['amount_games'] += 1
                users[user_id]['number'] = None
                await message.answer("Congratulations you win")
           elif number < users[user_id]['number']:
-               users[user_id]['atempts'] -= 1
+               users[user_id]['attempts'] -= 1
                await message.answer('no, the number is bigger')
           elif number > users[user_id]['number']:
-               users[user_id]['atempts'] -= 1
+               users[user_id]['attempts'] -= 1
                await message.answer('no, the number is smaller')
 
-          if users[user_id]['atempts'] == 0:
+          if users[user_id]['attempts'] == 0:
                users[user_id]['in_game'] = False
-               users[user_id]['atempts'] = None
+               users[user_id]['attempts'] = None
                users[user_id]['amount_games'] += 1
                users[user_id]['number'] = None
                await message.answer('you lost')
