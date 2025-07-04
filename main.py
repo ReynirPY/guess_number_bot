@@ -7,6 +7,10 @@ BOT_TOKEN = ''
 
 ATTEMPTS = 5
 
+users = {
+
+}
+
 user_data = {
     'in_game':False,
     'atempts':None,
@@ -24,6 +28,15 @@ def generate_number() -> int:
 @dp.message(CommandStart())
 async def process_start(message:Message):
     user:User|None = message.from_user
+    user_id:int = user.id # type: ignore
+    if user_id not in users:
+         users[user_id] ={
+              'in_game':False,
+              'atempts':None,
+              'number':None,
+              'amount_games':0,
+              'wins':0
+         }
     name:str = user.first_name # type: ignore
     await message.answer(f'Hello {name}!!!\n I am bot with who you can play game "Guess The Number"\n press /help to learn rules and bot commands"')
 
@@ -33,14 +46,18 @@ async def process_help(message:Message):
 
 @dp.message(Command(commands='stat'))
 async def process_stat(message:Message):
-     await message.answer(f'Amount of games you play:{user_data['amount_games']}\nAmount of games you win {user_data['wins']}')
+     user:User|None = message.from_user
+     user_id:int = user.id  # type: ignore
+     await message.answer(f'Amount of games you play:{users[user_id]['amount_games']}\nAmount of games you win {users[user_id]['wins']}')
 
 @dp.message(F.text.lower().contains("play"))
 async def process_play(message:Message):
-    if not user_data['in_game']:
-          user_data['in_game'] = True
-          user_data['atempts'] = ATTEMPTS
-          user_data['number'] = generate_number()
+    user:User|None = message.from_user
+    user_id:int = user.id  # type: ignore
+    if not users[user_id]['in_game']:
+          users[user_id]['in_game'] = True
+          users[user_id]['atempts'] = ATTEMPTS
+          users[user_id]['number'] = generate_number()
 
           await message.answer(f'Game started you have {ATTEMPTS} attemps')
     else:
@@ -48,10 +65,12 @@ async def process_play(message:Message):
 
 @dp.message(Command(commands='cancel'))
 async def process_cancel(message:Message):
-    if user_data['in_game']:
-         user_data['in_game'] = False
-         user_data['atempts'] = None
-         user_data['amount_games']+=1
+    user:User|None = message.from_user
+    user_id:int = user.id  # type: ignore
+    if users[user_id]['in_game']:
+         users[user_id]['in_game'] = False
+         users[user_id]['atempts'] = None
+         users[user_id]['amount_games']+=1
          await message.answer('You stoped the game')
     else:
          await message.answer('you dont play now\nwrite play to start')
@@ -59,26 +78,29 @@ async def process_cancel(message:Message):
 @dp.message(F.text.isdigit())
 async def procces_number(message:Message):
      number:int = int(message.text) # type: ignore
-     if user_data['in_game']:
-          if number == user_data['number']:
-               user_data['in_game'] = False
-               user_data['atempts'] = None
-               user_data['wins'] +=1
-               user_data['amount_games'] += 1
-               user_data['number'] = None
+     user:User|None = message.from_user
+     user_id:int = user.id  # type: ignore
+
+     if users[user_id]['in_game']:
+          if number == users[user_id]['number']:
+               users[user_id]['in_game'] = False
+               users[user_id]['atempts'] = None
+               users[user_id]['wins'] +=1
+               users[user_id]['amount_games'] += 1
+               users[user_id]['number'] = None
                await message.answer("Congratulations you win")
-          elif number < user_data['number']:
-               user_data['atempts'] -= 1
+          elif number < users[user_id]['number']:
+               users[user_id]['atempts'] -= 1
                await message.answer('no, the number is bigger')
-          elif number > user_data['number']:
-               user_data['atempts'] -= 1
+          elif number > users[user_id]['number']:
+               users[user_id]['atempts'] -= 1
                await message.answer('no, the number is smaller')
 
-          if user_data['atempts'] == 0:
-               user_data['in_game'] = False
-               user_data['atempts'] = None
-               user_data['amount_games'] += 1
-               user_data['number'] = None
+          if users[user_id]['atempts'] == 0:
+               users[user_id]['in_game'] = False
+               users[user_id]['atempts'] = None
+               users[user_id]['amount_games'] += 1
+               users[user_id]['number'] = None
                await message.answer('you lost')
 
      else:
